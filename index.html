@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .filters, .search-bar {
+            margin-bottom: 20px;
+        }
+        .contact {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contact Viewer</h1>
+
+    <div class="filters">
+        <select id="blockDropdown">
+            <option value="">Select Block</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+        </select>
+        <select id="departmentDropdown">
+            <option value="">Select Department</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+        </select>
+        <select id="designationDropdown">
+            <option value="">Select Designation</option>
+            <option value="Manager">Manager</option>
+            <option value="Executive">Executive</option>
+        </select>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search...">
+    </div>
+
+    <div id="contacts"></div>
+
+    <script>
+        const apiUrl = "https://script.google.com/macros/s/AKfycbxpzo3hOEJkja9KLS4Kk3xeV0Lpoer40bQiDcSYVtupE1jWC_XQk5hydNfZcDvMTVjG/exec";
+
+        async function fetchContacts() {
+            const block = document.getElementById('blockDropdown').value;
+            const department = document.getElementById('departmentDropdown').value;
+            const designation = document.getElementById('designationDropdown').value;
+            const search = document.getElementById('searchInput').value;
+
+            const query = new URLSearchParams({ block, department, designation, search });
+            const response = await fetch(`${apiUrl}?${query.toString()}`);
+            const data = await response.json();
+
+            displayContacts(data);
+        }
+
+        function displayContacts(contacts) {
+            const container = document.getElementById('contacts');
+            container.innerHTML = '';
+            contacts.forEach(contact => {
+                const div = document.createElement('div');
+                div.className = 'contact';
+                div.innerHTML = `
+                    <p><strong>Block:</strong> ${contact.Block}</p>
+                    <p><strong>Department:</strong> ${contact.Department}</p>
+                    <p><strong>Designation:</strong> ${contact.Designation}</p>
+                    <p><strong>Contact Number:</strong> ${contact["Contact Number"]}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Event listeners
+        document.getElementById('blockDropdown').addEventListener('change', fetchContacts);
+        document.getElementById('departmentDropdown').addEventListener('change', fetchContacts);
+        document.getElementById('designationDropdown').addEventListener('change', fetchContacts);
+        document.getElementById('searchInput').addEventListener('input', fetchContacts);
+
+        // Initial fetch
+        fetchContacts();
+    </script>
+</body>
+</html>
