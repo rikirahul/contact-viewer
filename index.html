@@ -21,14 +21,6 @@
             text-align: center;
             background-color: #007bff;
             color: white;
-            border-top: 2px solid #0056b3;
-        }
-        footer a {
-            color: white;
-            text-decoration: underline;
-        }
-        footer a:hover {
-            text-decoration: none;
         }
     </style>
 </head>
@@ -48,41 +40,13 @@
                         <th>Email ID</th>
                     </tr>
                     <tr>
-                        <th>
-                            <select id="blockDropdown" class="form-select">
-                                <option value="">Select Block</option>
-                            </select>
-                        </th>
-                        <th>
-                            <select id="departmentDropdown" class="form-select">
-                                <option value="">Select Department</option>
-                            </select>
-                        </th>
-                        <th>
-                            <select id="designationDropdown" class="form-select">
-                                <option value="">Select Designation</option>
-                            </select>
-                        </th>
-                        <th>
-                            <select id="officerDropdown" class="form-select">
-                                <option value="">Select Officer Name</option>
-                            </select>
-                        </th>
-                        <th>
-                            <select id="contactDropdown" class="form-select">
-                                <option value="">Select Contact Number</option>
-                            </select>
-                        </th>
-                        <th>
-                            <select id="officeDropdown" class="form-select">
-                                <option value="">Select Office Name</option>
-                            </select>
-                        </th>
-                        <th>
-                            <select id="emailDropdown" class="form-select">
-                                <option value="">Select Email ID</option>
-                            </select>
-                        </th>
+                        <th><select id="blockDropdown" class="form-select"></select></th>
+                        <th><select id="departmentDropdown" class="form-select"></select></th>
+                        <th><select id="designationDropdown" class="form-select"></select></th>
+                        <th><select id="officerDropdown" class="form-select"></select></th>
+                        <th><select id="contactDropdown" class="form-select"></select></th>
+                        <th><select id="officeDropdown" class="form-select"></select></th>
+                        <th><select id="emailDropdown" class="form-select"></select></th>
                     </tr>
                 </thead>
                 <tbody id="contactsTableBody"></tbody>
@@ -94,9 +58,9 @@
     </div>
 
     <script>
-        const apiUrl = "https://script.google.com/macros/s/AKfycbw-AeeOPWkcIZflmLHIgUETyp7GeyukT80lbuFHJ1AN7J7cySEMJgt_0VZR5iG0TTII/exec"; // Replace with your Google Apps Script URL
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyzgDCViVCbttN8OX-PcrvlDI4EsufU_6a-0BtHQPsPEJ9Bj9SZRV01XFYLnhjCZIwN/exec"; // Replace with your Google Apps Script URL.
 
-        async function fetchContacts() {
+        async function fetchAndUpdateDropdowns() {
             const block = document.getElementById('blockDropdown').value;
             const department = document.getElementById('departmentDropdown').value;
             const designation = document.getElementById('designationDropdown').value;
@@ -109,18 +73,36 @@
             const response = await fetch(`${apiUrl}?${query.toString()}`);
             const data = await response.json();
 
-            displayContacts(data);
+            displayContacts(data.contacts || []);
+            if (data.filters) {
+                populateDropdown('blockDropdown', data.filters.blocks);
+                populateDropdown('departmentDropdown', data.filters.departments);
+                populateDropdown('designationDropdown', data.filters.designations);
+                populateDropdown('officerDropdown', data.filters.officers);
+                populateDropdown('contactDropdown', data.filters.contacts);
+                populateDropdown('officeDropdown', data.filters.offices);
+                populateDropdown('emailDropdown', data.filters.emails);
+            }
+        }
+
+        function populateDropdown(dropdownId, values) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = '<option value="">Select</option>';
+            values.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                dropdown.appendChild(option);
+            });
         }
 
         function displayContacts(contacts) {
             const tableBody = document.getElementById('contactsTableBody');
             tableBody.innerHTML = '';
-
-            if (contacts.length === 0) {
+            if (!contacts.length) {
                 tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No results found</td></tr>';
                 return;
             }
-
             contacts.forEach(contact => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -136,40 +118,11 @@
             });
         }
 
-        async function populateDropdowns() {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
+        document.querySelectorAll('select').forEach(dropdown => {
+            dropdown.addEventListener('change', fetchAndUpdateDropdowns);
+        });
 
-            populateDropdown('blockDropdown', data.blocks);
-            populateDropdown('departmentDropdown', data.departments);
-            populateDropdown('designationDropdown', data.designations);
-            populateDropdown('officerDropdown', data.officers);
-            populateDropdown('contactDropdown', data.contacts);
-            populateDropdown('officeDropdown', data.offices);
-            populateDropdown('emailDropdown', data.emails);
-        }
-
-        function populateDropdown(dropdownId, values) {
-            const dropdown = document.getElementById(dropdownId);
-            dropdown.innerHTML = '<option value="">Select</option>';
-            values.sort().forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                dropdown.appendChild(option);
-            });
-        }
-
-        document.getElementById('blockDropdown').addEventListener('change', fetchContacts);
-        document.getElementById('departmentDropdown').addEventListener('change', fetchContacts);
-        document.getElementById('designationDropdown').addEventListener('change', fetchContacts);
-        document.getElementById('officerDropdown').addEventListener('change', fetchContacts);
-        document.getElementById('contactDropdown').addEventListener('change', fetchContacts);
-        document.getElementById('officeDropdown').addEventListener('change', fetchContacts);
-        document.getElementById('emailDropdown').addEventListener('change', fetchContacts);
-
-        populateDropdowns();
-        fetchContacts();
+        fetchAndUpdateDropdowns();
     </script>
 </body>
 </html>
